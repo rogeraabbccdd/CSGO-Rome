@@ -70,6 +70,8 @@ float poster4[3] = {0.0, -815.0, 310.0};
 int decal1;
 int decal2;
 
+int WinParticle;
+
 public Plugin myinfo =
 {
   name = "Rome Arena",
@@ -383,6 +385,18 @@ void HandleWin(int winner) {
     Roman2 = 0;
   }
 
+  float pos[3] = {0.0, 0.0, 35.0};
+  WinParticle = CreateEntityByName("info_particle_system");
+  DispatchKeyValue(WinParticle, "start_active", "1");
+  DispatchKeyValue(WinParticle, "effect_name", "weapon_confetti_balloons");
+  DispatchSpawn(WinParticle);
+  TeleportEntity(WinParticle, pos, NULL_VECTOR, NULL_VECTOR);
+  SetVariantString("!activator");	
+  ActivateEntity(WinParticle);
+  AcceptEntityInput(WinParticle, "Start");
+
+  CreateTimer(3.0, KillWinParticle, WinParticle);
+
   CreateTimer(7.0, OpenWallDelay);
 
   int id = AnthemSelected[winner];
@@ -402,6 +416,21 @@ void HandleWin(int winner) {
       EmitSoundToClient(i, sound, SOUND_FROM_PLAYER, SNDCHAN_STATIC, SNDLEVEL_NONE, _, AnthemVol[i]);
     }
   }
+}
+
+public Action KillWinParticle(Handle tmr, int entity)
+{
+  if(!IsValidEntity(entity))
+    return;
+    
+  AcceptEntityInput(entity, "DestroyImmediately"); //some particles don't disappear without this
+  CreateTimer(0.1, KillCustomParticle, entity); 
+}
+
+public Action KillCustomParticle(Handle timer, int entity)
+{
+  if(IsValidEntity(entity))
+    AcceptEntityInput(entity, "kill");
 }
 
 public Action OpenWallDelay (Handle timer) {
