@@ -26,6 +26,7 @@ bool canfight = false;
 
 ConVar mp_death_drop_gun;
 ConVar mp_teammates_are_enemies;
+ConVar mp_ignore_round_win_conditions;
 
 float wall_y1 = 180.0;
 float wall_y2 = -180.0;
@@ -83,9 +84,11 @@ public void OnPluginStart()
 
   mp_death_drop_gun = FindConVar("mp_death_drop_gun");
   mp_teammates_are_enemies = FindConVar("mp_teammates_are_enemies");
+  mp_ignore_round_win_conditions = FindConVar("mp_ignore_round_win_conditions");
 
   mp_death_drop_gun.AddChangeHook(OnConVarChanged);
   mp_teammates_are_enemies.AddChangeHook(OnConVarChanged);
+  mp_ignore_round_win_conditions.AddChangeHook(OnConVarChanged);
 
   RegConsoleCmd("sm_rome", Command_Rome, "Rome menu");
 
@@ -218,6 +221,7 @@ public void OnMapStart() {
 
   mp_death_drop_gun.BoolValue = false;
   mp_teammates_are_enemies.BoolValue = true;
+  mp_ignore_round_win_conditions.BoolValue = true;
 
   decal1 = PrecacheDecal("rome/fight", true);
   decal2 = PrecacheDecal("rome/fight2", true);
@@ -244,6 +248,9 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
   }
   else if (convar == mp_teammates_are_enemies) {
     mp_teammates_are_enemies.BoolValue = true;
+  }
+  else if (convar == mp_ignore_round_win_conditions) {
+    mp_ignore_round_win_conditions.BoolValue = true;
   }
 }
 
