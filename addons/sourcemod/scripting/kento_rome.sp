@@ -23,6 +23,8 @@ int Wall1Ref = INVALID_ENT_REFERENCE;
 int Wall2Ref = INVALID_ENT_REFERENCE;
 float zone_pos[MAXPLAYERS+1][3];
 bool canfight = false;
+int score1 = 0;
+int score2 = 0;
 
 ConVar mp_death_drop_gun;
 ConVar mp_teammates_are_enemies;
@@ -44,6 +46,8 @@ char Configfile[1024],
   AnthemFile[MAX_ANTHEM_COUNT + 1][1024],
   AnthemSelectedName[MAXPLAYERS + 1][1024];
 float AnthemVol[MAXPLAYERS + 1];
+
+float Spawnpos[MAXPLAYERS + 1][3];
 
 enum struct STATS
 {
@@ -277,9 +281,11 @@ public void OnClientDisconnect(int client){
   int num = NumRoman(client);
   if(num == 1) {
     Roman1 = 0;
+    HandleWin(Roman2);
   }
   else if (num == 2) {
     Roman2 = 0;
+    HandleWin(Roman1);
   }
 
   SaveClientStats(client);
@@ -314,6 +320,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
   CreateTimer(0.5, GiveHealth, client);
   SetEntityHealth(client, 100);
+
+  GetEntPropVector(client, Prop_Send, "m_vecOrigin", Spawnpos[client]);
 }
 
 public Action GiveHealth(Handle timer, int client)
@@ -325,36 +333,10 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 {
   int client = GetClientOfUserId(event.GetInt("userid"));
 
-  char message[128];
   int num = NumRoman(client);
-  if(num == 1) {
-    Stats[Roman2].WINS++;
-    Stats[Roman1].LOSES++;
-    CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman2, 10 - (GetClientHealth(Roman2) / 10));
-    SetEntityHealth(Roman2, 100);
-    Format(message, sizeof(message), "%N  WIN!", Roman2);
-    PrintHUD(message, 7.0);
-    HandleWin(Roman2);
-    SaveClientStats(Roman2);
-    SaveClientStats(Roman1);
-    RemoveWeapons(Roman2);
-    GiveWeapons(Roman2, false);
-    Roman1 = 0;
-  }
-  else if (num == 2) {
-    Stats[Roman1].WINS++;
-    Stats[Roman2].LOSES++;
-    CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman1, 10 - (GetClientHealth(Roman1) / 10));
-    SetEntityHealth(Roman1, 100);
-    Format(message, sizeof(message), "%N  WIN!", Roman1);
-    PrintHUD(message, 7.0);
-    HandleWin(Roman1);
-    SaveClientStats(Roman2);
-    SaveClientStats(Roman1);
-    RemoveWeapons(Roman1);
-    GiveWeapons(Roman1, false);
-    Roman2 = 0;
-  }
+  if(num == 1) HandleWin(Roman2);
+  else if(num == 2) HandleWin(Roman1);
+  
   CreateTimer(7.0, RespawnTimer, client);
 }
 
@@ -368,7 +350,38 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
 }
 
 void HandleWin(int winner) {
+  char message[128];
+
   canfight = false;
+
+  int num = NumRoman(winner);
+
+  if(num == 2) {
+    Stats[Roman2].WINS++;
+    Stats[Roman1].LOSES++;
+    CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman2, score1);
+    SetEntityHealth(Roman2, 100);
+    Format(message, sizeof(message), "%N  WIN!", Roman2);
+    PrintHUD(message, 7.0);
+    SaveClientStats(Roman2);
+    SaveClientStats(Roman1);
+    RemoveWeapons(Roman2);
+    GiveWeapons(Roman2, false);
+    Roman1 = 0;
+  }
+  else if (num == 1) {
+    Stats[Roman1].WINS++;
+    Stats[Roman2].LOSES++;
+    CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman1, score2);
+    SetEntityHealth(Roman1, 100);
+    Format(message, sizeof(message), "%N  WIN!", Roman1);
+    PrintHUD(message, 7.0);
+    SaveClientStats(Roman2);
+    SaveClientStats(Roman1);
+    RemoveWeapons(Roman1);
+    GiveWeapons(Roman1, false);
+    Roman2 = 0;
+  }
 
   CreateTimer(7.0, OpenWallDelay);
 
@@ -496,6 +509,8 @@ void PrintHUD(const char[] message, float displaytime = 200.0) {
 }
 
 void GiveWeapons(int client, bool showhint = true) {
+  if(!IsValidClient(client)) return;
+  
   int weaponIdx = GetPlayerWeaponSlot(client, 11);
   if(weaponIdx == -1)
   {
@@ -508,6 +523,8 @@ void GiveWeapons(int client, bool showhint = true) {
 }
 
 void RemoveWeapons(int client) {
+  if(!IsValidClient(client)) return;
+
   int weaponIdx = GetPlayerWeaponSlot(client, 11);
   if(weaponIdx != -1)
   {
@@ -607,6 +624,21 @@ public Action SpawnWallDelay (Handle timer) {
   Movement_SetVelocity(Roman2, view_as<float>( { 0.0, 0.0, 0.0 } ));
   SetEntityMoveType(Roman1, MOVETYPE_NONE);
   SetEntityMoveType(Roman2, MOVETYPE_NONE);
+
+  score1 = 0;
+  score2 = 0;
+
+  float pos[3];
+  pos[0] = -447.88;
+  pos[1] = 260.0;
+  pos[2] = 64.0;
+  for (int i = 1; i <= MaxClients; i++)
+  {
+    if(IsValidClient(i) && NumRoman(i) == 0 && Zone_IsClientInZone(i, ZONE_NAME))
+    {
+      TeleportEntity(i, Spawnpos[i], NULL_VECTOR, NULL_VECTOR); 
+    }
+  }
 }
 
 public Action MoveCloseWall (Handle timer) {
@@ -816,18 +848,16 @@ public Action TraceAttack(int victim, int &attacker, int &inflictor, float &dama
     ShowDamageText(dmgpos, angles, dmg);
 
     int victimRoman = NumRoman(victim);
-    int Roman1Score;
-    int Roman2Score;
     if(victimRoman == 1) {
-      Roman2Score = 10 - ((GetClientHealth(victim) - RoundToZero(dmg)) / 10);
-      Roman1Score = 10 - (GetClientHealth(attacker) / 10);
+      score2 = 10 - ((GetClientHealth(victim) - RoundToZero(dmg)) / 10);
+      score1 = 10 - (GetClientHealth(attacker) / 10);
     }
     else if(victimRoman == 2) {
-      Roman1Score = 10 - ((GetClientHealth(victim) - RoundToZero(dmg)) / 10);
-      Roman2Score = 10 - (GetClientHealth(attacker) / 10);
+      score1 = 10 - ((GetClientHealth(victim) - RoundToZero(dmg)) / 10);
+      score2 = 10 - (GetClientHealth(attacker) / 10);
     }
     char message[128];
-    Format(message, sizeof(message), "%d - %N   VS   %N - %d", Roman1Score, Roman1, Roman2, Roman2Score);
+    Format(message, sizeof(message), "%d - %N   VS   %N - %d", score1, Roman1, Roman2, score2);
     PrintHUD(message);
   }
 
