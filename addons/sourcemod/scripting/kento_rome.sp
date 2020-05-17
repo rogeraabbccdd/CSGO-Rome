@@ -362,7 +362,7 @@ void HandleWin(int winner) {
     Stats[Roman2].WINS++;
     Stats[Roman1].LOSES++;
     CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman2, score1);
-    SetEntityHealth(Roman2, 100);
+    if(IsValidClient(Roman2)) SetEntityHealth(Roman2, 100);
     Format(message, sizeof(message), "%N  WIN!", Roman2);
     PrintHUD(message, 7.0);
     SaveClientStats(Roman2);
@@ -374,7 +374,7 @@ void HandleWin(int winner) {
     Stats[Roman1].WINS++;
     Stats[Roman2].LOSES++;
     CPrintToChatAll("{GREEN}[ROME] {NORMAL} 對戰結果: {PINK} %N {LIGHTGREEN}勝利 {NORMAL}, {BLUE}10 : {RED}%d", Roman1, score2);
-    SetEntityHealth(Roman1, 100);
+    if(IsValidClient(Roman1)) SetEntityHealth(Roman1, 100);
     Format(message, sizeof(message), "%N  WIN!", Roman1);
     PrintHUD(message, 7.0);
     SaveClientStats(Roman2);
