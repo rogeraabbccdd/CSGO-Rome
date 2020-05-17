@@ -926,12 +926,12 @@ public int MainMenu_Handler(Menu menu, MenuAction action, int client,int param)
       else if(StrEqual(menuitem, "anthem_vol")) ShowAnthemVolMenu(client);
       else if(StrEqual(menuitem, "stats")) {
         char RankQuery[512];
-        Format(RankQuery, sizeof(RankQuery), "SELECT *, (wins / (loses + wins)) as wlr FROM rome ORDER BY wlr DESC");
+        Format(RankQuery, sizeof(RankQuery), "SELECT *, (wins / (loses + wins)) as wlr FROM rome ORDER BY wins DESC");
         ddb.Query(SQL_StatsCallback, RankQuery, GetClientUserId(client));
       }
       else if(StrEqual(menuitem, "top")) {
         char RankQuery[512];
-        Format(RankQuery, sizeof(RankQuery), "SELECT *, (wins / (loses + wins)) as wlr FROM rome ORDER BY wlr DESC LIMIT 10");
+        Format(RankQuery, sizeof(RankQuery), "SELECT *, (wins / (loses + wins)) as wlr FROM rome ORDER BY wins DESC LIMIT 10");
         ddb.Query(SQL_TopCallback, RankQuery, GetClientUserId(client));
       }
     }
@@ -1076,7 +1076,7 @@ public void SQL_StatsCallback(Database db, DBResultSet results, const char[] err
 
   Format(temp, sizeof(temp), "基本資料\n");
   StrCat(text, sizeof(text), temp);
-  Format(temp, sizeof(temp), "勝場:%d\n勝率:%.2f%\n排名:%d/%d", Stats[client].WINS, win, i, iTotalPlayers);
+  Format(temp, sizeof(temp), "勝場:%d\n敗場:%d\n勝率:%.2f%\n排名:%d/%d", Stats[client].WINS, Stats[client].LOSES, win, i, iTotalPlayers);
   StrCat(text, sizeof(text), temp);
   statsmenu.AddItem("", text);
   text="";
@@ -1120,8 +1120,9 @@ public void SQL_TopCallback(Database db, DBResultSet results, const char[] error
   while(results.HasResults && results.FetchRow())
   {
     i++;
-    results.FetchString(2, name, sizeof(name))
-    Format(temp, sizeof(temp), "#%d. %s - %f\n", i, name, results.FetchFloat(9));
+    results.FetchString(2, name, sizeof(name));
+
+    Format(temp, sizeof(temp), "#%d. %s - %d勝 %d敗 (%f%)\n", i, name, results.FetchInt(3), results.FetchInt(4), results.FetchFloat(9));
     StrCat(text, sizeof(text), temp);
   }
   
