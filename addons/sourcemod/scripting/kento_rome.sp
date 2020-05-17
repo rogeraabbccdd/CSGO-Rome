@@ -413,20 +413,27 @@ public Action OpenWallDelay (Handle timer) {
 }
 
 public Action MoveOpenWall (Handle timer) {
-  int entity  = EntRefToEntIndex(Wall1Ref);
-  wall_y1 += 9.0;
   float pos[3];
-  pos[0] = 210.0;
-  pos[1] = wall_y1;
-  pos[2] = 25.0;
-  TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  wall_y1 += 9.0;
+  wall_y2 -= 9.0;
+
+  int entity  = EntRefToEntIndex(Wall1Ref);
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    pos[0] = 210.0;
+    pos[1] = wall_y1;
+    pos[2] = 25.0;
+    TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  }
 
   entity  = EntRefToEntIndex(Wall2Ref);
-  wall_y2 -= 9.0;
-  pos[0] = -210.0;
-  pos[1] = wall_y2;
-  pos[2] = 25.0;
-  TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    pos[0] = -210.0;
+    pos[1] = wall_y2;
+    pos[2] = 25.0;
+    TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  }
 
   if(wall_y1 >= 180.0) {
     if(TimerOpenWall != INVALID_HANDLE)
@@ -642,21 +649,27 @@ public Action SpawnWallDelay (Handle timer) {
 }
 
 public Action MoveCloseWall (Handle timer) {
-  int entity  = EntRefToEntIndex(Wall1Ref);
-
-  wall_y1 -= 9.0;
   float pos[3];
-  pos[0] = 210.0;
-  pos[1] = wall_y1;
-  pos[2] = 25.0;
-  TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
-
-  entity  = EntRefToEntIndex(Wall2Ref);
+  wall_y1 -= 9.0;
   wall_y2 += 9.0;
-  pos[0] = -210.0;
-  pos[1] = wall_y2;
-  pos[2] = 25.0;
-  TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  
+  int entity  = EntRefToEntIndex(Wall1Ref);
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    pos[0] = 210.0;
+    pos[1] = wall_y1;
+    pos[2] = 25.0;
+    TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  }
+
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    entity  = EntRefToEntIndex(Wall2Ref);
+    pos[0] = -210.0;
+    pos[1] = wall_y2;
+    pos[2] = 25.0;
+    TeleportEntity(entity, pos, NULL_VECTOR, NULL_VECTOR);
+  }
 
   if(wall_y1 <= 0.0) {
     char message[128];
