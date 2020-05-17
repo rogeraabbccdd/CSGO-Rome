@@ -368,7 +368,6 @@ void HandleWin(int winner) {
     SaveClientStats(Roman2);
     SaveClientStats(Roman1);
     RemoveWeapons(Roman2);
-    GiveWeapons(Roman2, false);
     Roman1 = 0;
   }
   else if (num == 1) {
@@ -381,7 +380,6 @@ void HandleWin(int winner) {
     SaveClientStats(Roman2);
     SaveClientStats(Roman1);
     RemoveWeapons(Roman1);
-    GiveWeapons(Roman1, false);
     Roman2 = 0;
   }
 
@@ -513,16 +511,13 @@ public void Zone_OnClientEntry(int client, const char [] zone)
 
   if(Roman1 == 0 && Roman2 == 0) {
     Roman1 = client;
-    GiveWeapons(client);
   }
   else if (Roman1 == 0 && Roman2 != 0) {
     Roman1 = client;
-    GiveWeapons(client);
     CreateTimer(1.5, SpawnWallDelay);
   }
   else if (Roman1 != 0 && Roman2 == 0) {
     Roman2 = client;
-    GiveWeapons(client);
     CreateTimer(1.5, SpawnWallDelay);
   }
   else {
@@ -645,6 +640,9 @@ void SpawnWall () {
   TeleportEntity(Wall2Model, pos, NULL_VECTOR, NULL_VECTOR);
 
   TimerCloseWall = CreateTimer(0.05, MoveCloseWall, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+
+  GiveWeapons(Roman1);
+  GiveWeapons(Roman2);
 
   for (int i = 1; i <= MaxClients; i++)
   {
