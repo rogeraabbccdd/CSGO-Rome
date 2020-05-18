@@ -1,0 +1,6 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/roman_helmet/roman_helmet2"
+	"$surfaceprop" "Metal"
+	"$surfaceprop2" "Metal"
+}
