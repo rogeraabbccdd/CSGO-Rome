@@ -17,6 +17,11 @@
 
 int Roman1;
 int Roman2;
+int RomanHemlet1;
+int RomanHemlet2;
+int RomanHemlet1Ref;
+int RomanHemlet2Ref;
+
 int Wall1Model;
 int Wall2Model;
 int Wall1Ref = INVALID_ENT_REFERENCE;
@@ -207,6 +212,18 @@ void LoadAnthemConfig()
 
 public void OnMapStart() {
   PrecacheModel("models/props_urban/fence001_128.mdl", true);
+
+  PrecacheModel("models/roman_helmet/roman_helmet2_edited.mdl", true);
+  AddFileToDownloadsTable("models/roman_helmet/roman_helmet2_edited.dx90.vtx");
+  AddFileToDownloadsTable("models/roman_helmet/roman_helmet2_edited.mdl");
+  AddFileToDownloadsTable("models/roman_helmet/roman_helmet2_edited.phy");
+  AddFileToDownloadsTable("models/roman_helmet/roman_helmet2_edited.vvd");
+  AddFileToDownloadsTable("materials/models/roman_helmet/roman_helmet2.vmt");
+  AddFileToDownloadsTable("materials/models/roman_helmet/roman_helmet2.vtf");
+  AddFileToDownloadsTable("materials/models/roman_helmet/rouge.vmt");
+  AddFileToDownloadsTable("materials/models/roman_helmet/rouge.vtf");
+  AddFileToDownloadsTable("materials/models/roman_helmet/rouge2.vmt");
+  AddFileToDownloadsTable("materials/models/roman_helmet/rouge2.vtf");
 
   FakePrecacheSound("*/doors/door_metal_gate_move1.wav");
 
@@ -432,6 +449,22 @@ public Action KillCustomParticle(Handle timer, int entity)
 }
 
 public Action OpenWallDelay (Handle timer) {
+  int entity = EntRefToEntIndex(RomanHemlet1Ref);
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    SDKUnhook(entity, SDKHook_SetTransmit, ShouldHide);
+    AcceptEntityInput(entity, "Kill");
+    RomanHemlet1Ref = INVALID_ENT_REFERENCE;
+  }
+
+  entity = EntRefToEntIndex(RomanHemlet2Ref);
+  if(entity != INVALID_ENT_REFERENCE && IsValidEdict(entity) && entity != 0)
+  {
+    SDKUnhook(entity, SDKHook_SetTransmit, ShouldHide);
+    AcceptEntityInput(entity, "Kill");
+    RomanHemlet2Ref = INVALID_ENT_REFERENCE;
+  }
+
   for (int i = 1; i <= MaxClients; i++)
   {
     if(IsValidClient(i) && !IsFakeClient(i))  EmitSoundToClient(i, "*/doors/door_metal_gate_move1.wav", SOUND_FROM_PLAYER, SNDCHAN_STATIC, SNDLEVEL_NONE, _, 1.0);
@@ -551,6 +584,84 @@ void GiveWeapons(int client, bool showhint = true) {
   if(showhint) PrintHintText(client, "滑鼠左鍵換刀攻擊\n滑鼠右鍵換盾防禦");
 
   Client_SetActiveWeapon(client, GetPlayerWeaponSlot(client, CS_SLOT_KNIFE));
+
+  float m_fHatOrigin[3], m_fHatAngles[3], m_fForward[3], m_fRight[3], m_fUp[3], m_fOffset[3];
+
+  GetClientAbsOrigin(client,m_fHatOrigin);
+  GetClientAbsAngles(client,m_fHatAngles);
+
+  m_fHatAngles[0] += 2.0;
+  m_fHatAngles[1] += 181.0;
+  m_fHatAngles[2] += 0.0;
+
+  m_fOffset[0] = 0.0;
+  m_fOffset[1] = 3.0;
+  m_fOffset[2] = -79.0;
+
+  GetAngleVectors(m_fHatAngles, m_fForward, m_fRight, m_fUp);
+
+  m_fHatOrigin[0] += m_fRight[0]*m_fOffset[0]+m_fForward[0]*m_fOffset[1]+m_fUp[0]*m_fOffset[2];
+  m_fHatOrigin[1] += m_fRight[1]*m_fOffset[0]+m_fForward[1]*m_fOffset[1]+m_fUp[1]*m_fOffset[2];
+  m_fHatOrigin[2] += m_fRight[2]*m_fOffset[0]+m_fForward[2]*m_fOffset[1]+m_fUp[2]*m_fOffset[2];
+
+  int num = NumRoman(client);
+  if(num == 1) {
+    RomanHemlet1 = CreateEntityByName("prop_dynamic_override");
+    DispatchKeyValue(RomanHemlet1, "model", "models/roman_helmet/roman_helmet2_edited.mdl");
+    DispatchKeyValue(RomanHemlet1, "spawnflags", "256");
+    DispatchKeyValue(RomanHemlet1, "solid", "0");
+    SetEntPropEnt(RomanHemlet1, Prop_Send, "m_hOwnerEntity", client);
+    DispatchSpawn(RomanHemlet1);
+    AcceptEntityInput(RomanHemlet1, "TurnOn", RomanHemlet1, RomanHemlet1, 0);
+    TeleportEntity(RomanHemlet1, m_fHatOrigin, m_fHatAngles, NULL_VECTOR); 
+    SetVariantString("!activator");
+    AcceptEntityInput(RomanHemlet1, "SetParent", client, RomanHemlet1);
+    DispatchKeyValue(RomanHemlet1, "skin", "1");
+    SetVariantString("facemask");
+    AcceptEntityInput(RomanHemlet1, "SetParentAttachmentMaintainOffset", RomanHemlet1, RomanHemlet1, 0);	
+    RomanHemlet1Ref = EntIndexToEntRef(RomanHemlet1);
+    DispatchKeyValue(RomanHemlet1, "skin", "0");
+    SDKHook(RomanHemlet1, SDKHook_SetTransmit, ShouldHide);
+  }
+  else if(num == 2) {
+    RomanHemlet2 = CreateEntityByName("prop_dynamic_override");
+    DispatchKeyValue(RomanHemlet2, "model", "models/roman_helmet/roman_helmet2_edited.mdl");
+    DispatchKeyValue(RomanHemlet2, "spawnflags", "256");
+    DispatchKeyValue(RomanHemlet2, "solid", "0");
+    SetEntPropEnt(RomanHemlet2, Prop_Send, "m_hOwnerEntity", client);
+    DispatchSpawn(RomanHemlet2);
+    AcceptEntityInput(RomanHemlet2, "TurnOn", RomanHemlet2, RomanHemlet2, 0);
+    TeleportEntity(RomanHemlet2, m_fHatOrigin, m_fHatAngles, NULL_VECTOR); 
+    SetVariantString("!activator");
+    AcceptEntityInput(RomanHemlet2, "SetParent", client, RomanHemlet2);
+    DispatchKeyValue(RomanHemlet2, "skin", "1");
+    SetVariantString("facemask");
+    AcceptEntityInput(RomanHemlet2, "SetParentAttachmentMaintainOffset", RomanHemlet2, RomanHemlet2, 0);	
+    RomanHemlet2Ref = EntIndexToEntRef(RomanHemlet2);
+    DispatchKeyValue(RomanHemlet2, "skin", "1");
+    SDKHook(RomanHemlet2, SDKHook_SetTransmit, ShouldHide);
+  }
+}
+
+public Action ShouldHide(int ent, int client)
+{
+	int owner = GetEntPropEnt(ent, Prop_Send, "m_hOwnerEntity");
+	if (owner == client)
+	{
+		return Plugin_Handled;
+	}
+
+	if (GetEntProp(client, Prop_Send, "m_iObserverMode") == 4)
+	{
+		if (owner == GetEntPropEnt(client, Prop_Send, "m_hObserverTarget"))
+		{
+			return Plugin_Handled;
+		}
+	}
+	
+	if(IsClientSourceTV(client)) return Plugin_Handled; // hide hats in demos
+	
+	return Plugin_Continue;
 }
 
 void RemoveWeapons(int client) {
