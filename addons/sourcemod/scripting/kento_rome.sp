@@ -1305,6 +1305,8 @@ public void OnSQLConnect(Handle owner, Handle hndl, const char[] error, any data
 
   ddb = view_as<Database>(CloneHandle(hndl));
 
+  if(!ddb.SetCharset("utf8mb4"))  ddb.SetCharset("utf8");
+
   CreateTable();
 }
 
@@ -1390,8 +1392,10 @@ public void SQL_LoadClientStats(Database db, DBResultSet results, const char[] e
         return;
       }
 
-      char InsertQuery[512];
-      Format(InsertQuery, sizeof(InsertQuery), "INSERT INTO `rome` VALUES(NULL,'%s','%N','0','0','0','0','0','0');", sCommunityID, client);
+      char InsertQuery[512], playerName[128];
+      GetClientName(client, playerName, 128);
+      ddb.Escape(playerName, playerName, 128);
+      Format(InsertQuery, sizeof(InsertQuery), "INSERT INTO `rome` VALUES(NULL,'%s','%s','0','0','0','0','0','0');", sCommunityID, playerName);
       ddb.Query(SQL_InsertCallback, InsertQuery, GetClientUserId(client));
     }
 
@@ -1429,10 +1433,12 @@ void SaveClientStats(int client)
     return;
   }
 
-  char SaveQuery[512];
+  char SaveQuery[512], playerName[128];
+  GetClientName(client, playerName, 128);
+  ddb.Escape(playerName, playerName, 128);
   Format(SaveQuery, sizeof(SaveQuery),
-  "UPDATE `rome` SET name = '%N', wins = '%i', loses = '%i', points0='%i', points1='%i', points2='%i', points3='%i' WHERE steamid = '%s';",
-  client,
+  "UPDATE `rome` SET name = '%s', wins = '%i', loses = '%i', points0='%i', points1='%i', points2='%i', points3='%i' WHERE steamid = '%s';",
+  playerName,
   Stats[client].WINS,
   Stats[client].LOSES,
   Stats[client].POINTS0,
