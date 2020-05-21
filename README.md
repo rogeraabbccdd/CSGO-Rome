@@ -26,5 +26,6 @@
 
 ## 影片預覽
 點圖片連結到 YouTube  
-
-[![video](https://i.ytimg.com/vi/jbV8OouVwBk/maxresdefault.jpg)](https://www.youtube.com/watch?v=jbV8OouVwBk)
+<a href="https://www.youtube.com/watch?v=jbV8OouVwBk" target="_blank">
+  <img height="300" src="https://i.ytimg.com/vi/jbV8OouVwBk/maxresdefault.jpg">
+</a>
